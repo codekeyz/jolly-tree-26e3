@@ -1,28 +1,20 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
-import 'package:shelf_router/shelf_router.dart';
-
-// Configure routes.
-final _router = Router()
-  ..get('/', _rootHandler)
-  ..get('/echo/<message>', _echoHandler);
-
-Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
-}
-
-Response _echoHandler(Request request) {
-  final message = request.params['message'];
-  return Response.ok('$message\n');
-}
 
 void main(List<String> args) async {
   final ip = InternetAddress.anyIPv4;
 
-  final handler =
-      Pipeline().addMiddleware(logRequests()).addHandler(_router.call);
+  final handler = Pipeline().addHandler((req) => Response.ok('''
+Welcome to the Dart server!
+
+Request Method: ${req.method}
+Request Path: ${req.requestedUri.path}
+Request Headers: ${JsonEncoder.withIndent('  ').convert(req.headers)}
+Request Query Parameters: ${JsonEncoder.withIndent('  ').convert(req.requestedUri.queryParameters)}
+'''));
 
   // For running in containers, we respect the PORT environment variable.
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
